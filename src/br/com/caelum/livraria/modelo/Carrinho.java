@@ -104,6 +104,7 @@ public class Carrinho implements Serializable {
 	}
 
 	public void atualizarFrete(final String novoCepDestino) {
+		System.out.println(">>>>>>>>>>>>>>>>>>> atualizarFrete");
 		this.cepDestino = novoCepDestino;
 
 		ConsumidorServicoCorreios servicoCorreios = new ConsumidorServicoCorreios();
