@@ -1,5 +1,8 @@
 package br.com.caelum.livraria.camel;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -19,10 +22,14 @@ public class ConfiguracaoCamel {
 	void init() throws Exception {
 		context.addRoutes(new RouteBuilder() {
 			public void configure() {
-				from("jms:topic:jms/TOPICO.LIVRARIA?username=jms&password=jms2")
+				from("jms:topic:jms/TOPICO.LIVRARIA?username=jms&password=jms2").to("direct:notas")
 						.log(LoggingLevel.INFO, "CAMEL: Recebendo MSG ${id}").filter()
 						.xpath("/pedido/itens/item/formato[text()='EBOOK']").split().xpath("/pedido/itens")
 						.to("jms:queue:jms/FILA.GERADOR?username=jms&password=jms2");
+
+				from("direct:notas").setHeader("data", constant(new SimpleDateFormat("dd/MM/yyyy").format(new Date())))
+						.split().xpath("/pedido/pagamento").convertBodyTo(String.class).to("velocity:nota.vm")
+						.log(LoggingLevel.INFO, "CAMEL: MSG tranformado com Velocity ${body}");
 
 			}
 		});
