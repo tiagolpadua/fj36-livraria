@@ -25,17 +25,23 @@ public class ConsumidorServicoCorreios {
 		System.out.println(">>>>>>>>>>>>>>>>>>> calculaFrete");
 		cepDestino = this.tirarHifenDoCep(cepDestino);
 		String valorFrete = null;
+		
+		try {
+			CalcPrecoPrazoWSSoap servico = new CalcPrecoPrazoWS().getCalcPrecoPrazoWSSoap();
 
-		CalcPrecoPrazoWSSoap servico = new CalcPrecoPrazoWS().getCalcPrecoPrazoWSSoap();
-
-		CResultado resultado = servico.calcPrecoPrazo(semCodigoEmpresa, semSenhaEmpresa, codigoSedex, cepOrigemCaelumSP,
-				cepDestino, peso3kg, formatoEncomendaCaixa, comprimento20cm, altura10cm, largura15cm, diametro10cm,
-				semEntregueEmMaos, semValorDeclarado, semAvisoRecebimento);
-		List<CServico> servicosPesquisados = resultado.getServicos().getCServico();
-		valorFrete = servicosPesquisados.get(0).getValor();
-		System.out.printf("Frete para %s eh de %s %n", cepDestino, valorFrete);
-
-		return converterParaBigDecimal(valorFrete);
+			CResultado resultado = servico.calcPrecoPrazo(semCodigoEmpresa, semSenhaEmpresa, codigoSedex, cepOrigemCaelumSP,
+					cepDestino, peso3kg, formatoEncomendaCaixa, comprimento20cm, altura10cm, largura15cm, diametro10cm,
+					semEntregueEmMaos, semValorDeclarado, semAvisoRecebimento);
+			List<CServico> servicosPesquisados = resultado.getServicos().getCServico();
+			valorFrete = servicosPesquisados.get(0).getValor();
+			System.out.printf("Frete para %s eh de %s %n", cepDestino, valorFrete);
+			return converterParaBigDecimal(valorFrete);
+	
+		} catch (Exception e) {
+			System.out.println("Erro ao tentar calcular frete no WS dos correios: " + e.getMessage());
+			e.printStackTrace();
+			return new BigDecimal("10");
+		}		
 	}
 
 	private BigDecimal converterParaBigDecimal(String valor) {

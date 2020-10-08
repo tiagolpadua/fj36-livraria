@@ -6,8 +6,12 @@ import java.util.ArrayList;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 
 @Entity
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Pagamento implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -17,7 +21,10 @@ public class Pagamento implements Serializable {
 	
 	@Id 
 	private Integer id;
+	
+	@XmlElement(name="estadoAtual")
 	private String status;
+	
 	private BigDecimal valor;
 	
 	private final ArrayList<Link> links = new ArrayList<>();

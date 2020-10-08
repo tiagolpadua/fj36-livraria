@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.2
  * 
  */
-@WebServiceClient(name = "EstoqueWSService", targetNamespace = "http://caelum.com.br/estoquews/v1", wsdlLocation = "http://localhost:8080/fj36-webservice/EstoqueWS?wsdl")
+@WebServiceClient(name = "EstoqueWSService", targetNamespace = "http://caelum.com.br/estoquews/v1", wsdlLocation = "http://localhost:8080/fj36-webservice1/EstoqueWS?wsdl")
 public class EstoqueWSService
     extends Service
 {
@@ -30,7 +30,7 @@ public class EstoqueWSService
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("http://localhost:8080/fj36-webservice/EstoqueWS?wsdl");
+            url = new URL("http://localhost:8080/fj36-webservice1/EstoqueWS?wsdl");
         } catch (MalformedURLException ex) {
             e = new WebServiceException(ex);
         }
