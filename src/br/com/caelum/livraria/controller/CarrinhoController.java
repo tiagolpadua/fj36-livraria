@@ -14,14 +14,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.caelum.livraria.modelo.Carrinho;
 import br.com.caelum.livraria.modelo.Formato;
 import br.com.caelum.livraria.modelo.Livro;
-import br.com.caelum.livraria.modelo.Pagamento;
 import br.com.caelum.livraria.modelo.Pedido;
+import br.com.caelum.livraria.rest.oauth2.AccessToken;
 
 @Controller
 @RequestMapping("/carrinho")
 @Scope("request")
-public class CarrinhoController{
-	
+public class CarrinhoController {
+
+	@Autowired
+	private AccessToken accessToken;
+
 	private static final String JSP_CARRINHO_CONFIRMAR = "carrinho/confirmarPagamento";
 	private static final String JSP_CARRINHO_LISTAR = "carrinho/listar";
 
@@ -30,14 +33,14 @@ public class CarrinhoController{
 
 	@Autowired
 	Carrinho carrinho;
-	
+
 	@PersistenceContext
 	EntityManager manager;
-	
+
 	@RequestMapping("/adicionarItem")
-	public String adicionarItemNoCarrinho(@RequestParam("id") Integer idLivro, 
-											@RequestParam("formatoLivro") Formato formato)  {
-		
+	public String adicionarItemNoCarrinho(@RequestParam("id") Integer idLivro,
+			@RequestParam("formatoLivro") Formato formato) {
+
 		Livro livro = manager.find(Livro.class, idLivro);
 		carrinho.adicionarOuIncremantarQuantidadeDoItem(livro, formato);
 
@@ -45,58 +48,55 @@ public class CarrinhoController{
 	}
 
 	@RequestMapping("/removerItem")
-	public String removerItemNoCarrinho(@RequestParam("codigo") String codigo, 
-											@RequestParam("formato") Formato formato, 
-													RedirectAttributes modelo) {
-		
+	public String removerItemNoCarrinho(@RequestParam("codigo") String codigo, @RequestParam("formato") Formato formato,
+			RedirectAttributes modelo) {
+
 		this.carrinho.removerItemPeloCodigoEFormato(codigo, formato);
-		
+
 		modelo.addFlashAttribute("messageInfo", "O item foi removido com sucesso.");
-		
+
 		return REDIRECT_CARRINHO_LISTAR;
 	}
-	
+
 	@RequestMapping("/calcularCep")
 	public String calcularCep(@RequestParam("cepDestino") String novoCepDestino) {
-		
+
 		this.carrinho.atualizarFrete(novoCepDestino);
 
 		return REDIRECT_CARRINHO_LISTAR;
 	}
-	
-	
+
 	@RequestMapping("/criarPagamento")
-	public String criarPagamento(String numeroCartao, 
-								 String titularCartao, 
-								 RedirectAttributes modelo) {
-	
-        if(!ehStringVazia(titularCartao) && !ehStringVazia(numeroCartao)){
+	public String criarPagamento(String numeroCartao, String titularCartao, RedirectAttributes modelo) {
+
+		if (!ehStringVazia(titularCartao) && !ehStringVazia(numeroCartao)) {
 			carrinho.setNumeroCartao(numeroCartao);
 			carrinho.setTitularCartao(titularCartao);
 		}
-		if(!carrinho.temCartao()) {
+		if (!carrinho.temCartao()) {
 			modelo.addFlashAttribute("messageWarn", "Por favor preenche os dados do cartão!");
 			return REDIRECT_CARRINHO_LISTAR;
 		}
-        // Aqui fica o código de verificação do access token
-        
+
+		if (!accessToken.isPreenchido()) {
+			return "redirect:/oauth/password/form";
+		}
 
 		this.carrinho.criarPagamento(numeroCartao, titularCartao);
 
-		if(this.carrinho.isPagamentoCriado()) {
+		if (this.carrinho.isPagamentoCriado()) {
 			modelo.addFlashAttribute("messageInfo", "O seu pagamento foi criado! - Por favor confirme o pedido.");
 		} else {
 			modelo.addFlashAttribute("messageWarn", "Pagamento não foi criado!");
 		}
-		
+
 		return REDIRECT_CARRINHO_CONFIRMAR;
 	}
-	
+
 	@RequestMapping("/confirmarPagamento")
 	public String confirmarPagamento() {
 		return JSP_CARRINHO_CONFIRMAR;
 	}
-
 
 	private boolean ehStringVazia(String string) {
 		return string == null || string.trim().isEmpty();
@@ -105,13 +105,13 @@ public class CarrinhoController{
 	@RequestMapping("/finalizar")
 	@Transactional
 	public String finalizarPedido(RedirectAttributes modelo) {
-		
-		if(!carrinho.isFreteCalculado()) {
+
+		if (!carrinho.isFreteCalculado()) {
 			modelo.addFlashAttribute("messageWarn", "O Frete deve ser calculado.");
 			return REDIRECT_CARRINHO_LISTAR;
 		}
-		
-		if(!carrinho.isPagamentoCriado()) {
+
+		if (!carrinho.isPagamentoCriado()) {
 			modelo.addFlashAttribute("messageWarn", "O pagamento deve ser aprovado antes.");
 			return REDIRECT_CARRINHO_LISTAR;
 		}
@@ -123,18 +123,17 @@ public class CarrinhoController{
 
 		return REDIRECT_CARRINHO_LISTAR;
 	}
-	
+
 	@RequestMapping("/listar")
 	public String listar() throws Exception {
-		
-		//verificacao do estoque aqui
-		
+
+		// verificacao do estoque aqui
+
 		// this.carrinho.verificarDisponibilidadeDosItensComRmi();
-		
+
 		this.carrinho.verificarDisponibilidadeDosItensComSoap();
-		
+
 		return JSP_CARRINHO_LISTAR;
 	}
-	
-}
 
+}
