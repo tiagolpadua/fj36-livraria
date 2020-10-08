@@ -79,7 +79,8 @@ public class CarrinhoController {
 		}
 
 		if (!accessToken.isPreenchido()) {
-			return "redirect:/oauth/password/form";
+			// return "redirect:/oauth/password/form";
+			return "redirect:/oauth/code";
 		}
 
 		this.carrinho.criarPagamento(numeroCartao, titularCartao);
